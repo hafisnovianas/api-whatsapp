@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
@@ -12,17 +12,23 @@ let sock;
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_wa');
+    
+    // 🌟 TAMBAHAN: Ambil versi WA Web terbaru langsung dari server WhatsApp
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    console.log(`Menggunakan WA v${version.join('.')}, isLatest: ${isLatest}`);
 
     sock = makeWASocket({
+        version, // 🌟 TAMBAHAN: Masukkan versi ke dalam konfigurasi
         auth: state,
         logger: pino({ level: 'silent' }), 
-        browser: ['Windows', 'Chrome', '111.0'] 
+        // Anda juga bisa mengubah browser jika 'Windows' masih ditolak:
+        browser: ['Ubuntu', 'Chrome', '20.0.04'] 
     });
 
     sock.ev.on('creds.update', saveCreds);
 
     sock.ev.on('connection.update', async (update) => {
-        const { connection, qr } = update;
+        const { connection, qr, lastDisconnect } = update;
         
         if (qr) {
             console.log('Silakan scan QR Code di bawah ini:');
@@ -30,8 +36,19 @@ async function connectToWhatsApp() {
         }
 
         if (connection === 'close') {
-            console.log('❌ Koneksi terputus, menghubungkan ulang...');
-            connectToWhatsApp();
+            const reason = lastDisconnect?.error?.output?.statusCode;
+            const shouldReconnect = reason !== DisconnectReason.loggedOut;
+            
+            console.log(`❌ Koneksi terputus. Kode Status: ${reason}`);
+            console.log(`🔍 Detail Error: ${lastDisconnect?.error?.message || 'Tidak ada detail error'}`);
+            
+            if (shouldReconnect) {
+                console.log('🔄 Menghubungkan ulang...');
+                // Jeda 2 detik sebelum reconnect agar tidak spam ke server WhatsApp
+                setTimeout(connectToWhatsApp, 2000); 
+            } else {
+                console.log('🛑 Sesi Logout. Folder auth_wa sudah tidak valid, silakan hapus dan restart server.');
+            }
         } else if (connection === 'open') {
             // Log ini menandakan WhatsApp dan API sudah siap
             console.log('✅ WhatsApp Berhasil Terhubung dan Siap Menerima Request API!');
