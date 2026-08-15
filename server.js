@@ -61,16 +61,28 @@ async function connectToWhatsApp() {
         if (!msg.message || msg.key.fromMe) return;
 
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-        const pengirim = msg.key.remoteJid;
+        const pengirim = msg.key.remoteJidAlt || msg.key.remoteJid;
+        const namaPengirim = msg.pushName || 'Tanpa Nama';
+        const targetJid = '6281534856394@s.whatsapp.net';
+
+        // ==========================================
+        // 🐛 MODE DEBUG: KIRIM JSON LOG KE WA
+        // ==========================================
+        // const rawData = JSON.stringify(msg, null, 2);
+        // await sock.sendMessage(targetJid, { 
+        //     text: `*DEBUG RAW DATA*\n\n${rawData}` 
+        // });
+        // ==========================================
 
         if (text) {
-            console.log(`💬 Pesan masuk dari ${pengirim}: ${text}`);
+            console.log(`💬 Pesan masuk dari ${namaPengirim} (${pengirim}): ${text}`);
             if (text.toLowerCase() === 'ping') {
                 console.log('🤖 Membalas dengan: pong!');
                 await sock.sendMessage(pengirim, { text: 'pong!' });
             } else {
-                const jid = '6281534856394@s.whatsapp.net';
-                await sock.sendMessage(jid, { text: `from: ${pengirim}\nmessage: ${text}` });
+                await sock.sendMessage(targetJid, { 
+                    text: `*Pesan Masuk*\n\nDari: ${namaPengirim}\nNomor: ${pengirim.split('@')[0]}\nPesan: ${text}`
+                });
             }
         }
     });
