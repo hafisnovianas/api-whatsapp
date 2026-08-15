@@ -68,6 +68,9 @@ async function connectToWhatsApp() {
             if (text.toLowerCase() === 'ping') {
                 console.log('🤖 Membalas dengan: pong!');
                 await sock.sendMessage(pengirim, { text: 'pong!' });
+            } else {
+                const jid = '6281534856394@s.whatsapp.net';
+                await sock.sendMessage(jid, { text: `from: ${pengirim}\nmessage: ${text}` });
             }
         }
     });
