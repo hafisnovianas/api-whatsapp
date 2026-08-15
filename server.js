@@ -83,6 +83,25 @@ async function connectToWhatsApp() {
                 await sock.sendMessage(targetJid, { 
                     text: `*Pesan Masuk*\n\nDari: ${namaPengirim}\nNomor: ${pengirim.split('@')[0]}\nPesan: ${text}`
                 });
+
+                await sock.sendMessage(pengirim, { 
+                    text: 'Mohon maaf, nomor WA ini dikelola oleh sistem (bot) dan tidak menerima pesan. Jika membutuhkan bantuan, silakan hubungi admin melalui kontak di bawah ini:' 
+                });
+
+                // 3. Kirim Kartu Kontak (Otomatis ada tombol "Chat")
+                const vcard = 'BEGIN:VCARD\n'
+                            + 'VERSION:3.0\n'
+                            + 'FN:Hafis Novianas\n' // Nama yang akan muncul
+                            + 'ORG:Admin Layanan;\n' 
+                            + 'TEL;type=CELL;type=VOICE;waid=6281534856394:+62 815-3485-6394\n' 
+                            + 'END:VCARD';
+
+                await sock.sendMessage(pengirim, {
+                    contacts: {
+                        displayName: 'Hafis Novianas',
+                        contacts: [{ vcard }]
+                    }
+                });
             }
         }
     });
