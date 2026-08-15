@@ -83,6 +83,25 @@ async function connectToWhatsApp() {
                 await sock.sendMessage(targetJid, { 
                     text: `*Pesan Masuk*\n\nDari: ${namaPengirim}\nNomor: ${pengirim.split('@')[0]}\nPesan: ${text}`
                 });
+
+                await sock.sendMessage(pengirim, { 
+                    text: 'Mohon maaf, nomor WA ini dikelola oleh sistem (bot) dan tidak menerima pesan. Jika membutuhkan bantuan, silakan hubungi admin melalui kontak di bawah ini:' 
+                });
+
+                // 3. Kirim Kartu Kontak (Otomatis ada tombol "Chat")
+                const vcard = 'BEGIN:VCARD\n'
+                            + 'VERSION:3.0\n'
+                            + 'FN:Admin Layanan\n' // Nama yang akan muncul
+                            + 'ORG:Admin Layanan;\n' 
+                            + 'TEL;type=CELL;type=VOICE;waid=6281234567890:+62 812-3456-7890\n' 
+                            + 'END:VCARD';
+
+                await sock.sendMessage(pengirim, {
+                    contacts: {
+                        displayName: 'Admin Layanan',
+                        contacts: [{ vcard }]
+                    }
+                });
             }
         }
     });
