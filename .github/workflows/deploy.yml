@@ -1,0 +1,45 @@
+name: Deploy to Ubuntu Server with PM2
+
+on:
+  push:
+    branches:
+      - main
+      - master # Sesuaikan dengan nama branch utama Anda
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }} # Port 22 secara default
+          script: |
+            # 1. Pindah ke direktori project Anda di Ubuntu (Sesuaikan letaknya)
+            # Misalnya project ditaruh di folder /var/www/api-whatsapp atau /home/ubuntu/api-whatsapp
+            cd /var/www/api-whatsapp
+            
+            # 2. Ambil perubahan terbaru dari repository Github
+            git pull origin main
+            
+            # 3. Install depedensi terbaru
+            npm install
+            
+            # 4. Restart atau Start aplikasi dengan PM2 menggunakan server.js (API Server)
+            # Pastikan Anda telah menginstall PM2 di server (npm install -g pm2)
+            pm2 describe api-whatsapp > /dev/null
+            if [ $? -eq 0 ]; then
+                pm2 restart api-whatsapp
+            else
+                pm2 start server.js --name "api-whatsapp"
+            fi
+            
+            # 5. Simpan konfigurasi PM2 agar auto start jika server mati/restart
+            pm2 save
