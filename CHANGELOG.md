@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dukungan modul `dotenv` untuk pengelolaan konfigurasi server dan kredensial via file `.env`.
 - Template konfigurasi [.env.example](file:///e:/UPGRADE%20SKILL/WEB/BACKEND/api-whatsapp/.env.example) untuk memudahkan pengaturan lingkungan saat proyek di-clone/deploy.
 - Proteksi opsional API Key pada endpoint `POST /api/send-message` melalui header `x-api-key` atau `Authorization: Bearer <token>`.
+- Otomatisasi pembuatan dan pembaruan file `.env` di server Ubuntu pada proses workflow deployment GitHub Actions menggunakan secret `WA_TARGET_NUMBER`.
 
 ### Changed
 - Parameter `TARGET_PHONE`, `ADMIN_NAME`, `ADMIN_PHONE`, dan `PORT` pada [server.js](file:///e:/UPGRADE%20SKILL/WEB/BACKEND/api-whatsapp/server.js) dan [index.js](file:///e:/UPGRADE%20SKILL/WEB/BACKEND/api-whatsapp/index.js) kini membaca nilai dinamis dari `process.env`.

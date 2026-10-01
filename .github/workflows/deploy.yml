@@ -38,10 +38,16 @@ jobs:
             # 1. Pindah ke direktori project yang baru saja dicopy oleh SCP
             cd ~/api-whatsapp
             
-            # 2. Install dependensi NPM terbaru
+            # 2. Otomatis buat / perbarui file .env di server dari GitHub Secrets
+            echo "PORT=3001" > .env
+            echo "TARGET_PHONE=${{ secrets.WA_TARGET_NUMBER }}" >> .env
+            echo "ADMIN_NAME=Admin Layanan" >> .env
+            echo "ADMIN_PHONE=${{ secrets.WA_TARGET_NUMBER }}" >> .env
+            
+            # 3. Install dependensi NPM terbaru
             npm install
             
-            # 3. Restart atau Start aplikasi dengan PM2 menggunakan server.js (API Server)
+            # 4. Restart atau Start aplikasi dengan PM2 menggunakan server.js (API Server)
             # Pastikan Anda telah menginstall PM2 di server (npm install -g pm2)
             pm2 describe api-whatsapp > /dev/null
             if [ $? -eq 0 ]; then
@@ -50,5 +56,5 @@ jobs:
                 pm2 start server.js --name "api-whatsapp"
             fi
             
-            # 4. Simpan konfigurasi PM2 agar auto start jika server mati/restart
+            # 5. Simpan konfigurasi PM2 agar auto start jika server mati/restart
             pm2 save
