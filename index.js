@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const qrcode = require('qrcode-terminal'); // Tambahan untuk memunculkan QR Code
@@ -38,8 +39,8 @@ async function connectToWhatsApp() {
             // BAGIAN MENGIRIM PESAN OTOMATIS
             // ==========================================
             
-            // GANTI NOMOR INI: Gunakan 62 untuk Indonesia (tanpa angka 0 di depan)
-            const nomorTujuan = '6281234567890'; 
+            // Ambil nomor target dari file .env (atau gunakan nomor dummy jika belum diatur)
+            const nomorTujuan = process.env.TARGET_PHONE || '6281234567890'; 
             
             // Format ID yang dikenali oleh WhatsApp
             const jid = `${nomorTujuan}@s.whatsapp.net`;

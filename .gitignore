@@ -1,3 +1,9 @@
 node_modules/
 auth_wa/
 t.js
+.env
+.env.*
+!.env.example
+
+*.log
+.git_backup_before_rewrite/

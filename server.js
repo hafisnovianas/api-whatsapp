@@ -1,7 +1,9 @@
+require('dotenv').config();
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
+
 
 // Inisialisasi Express
 const app = express();
@@ -63,7 +65,10 @@ async function connectToWhatsApp() {
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
         const pengirim = msg.key.remoteJidAlt || msg.key.remoteJid;
         const namaPengirim = msg.pushName || 'Tanpa Nama';
-        const targetJid = '6281234567890@s.whatsapp.net';
+        const targetPhone = process.env.TARGET_PHONE || '6281234567890';
+        const targetJid = `${targetPhone}@s.whatsapp.net`;
+        const adminName = process.env.ADMIN_NAME || 'Admin Layanan';
+        const adminPhone = process.env.ADMIN_PHONE || targetPhone;
 
         // ==========================================
         // 🐛 MODE DEBUG: KIRIM JSON LOG KE WA
@@ -91,14 +96,14 @@ async function connectToWhatsApp() {
                 // 3. Kirim Kartu Kontak (Otomatis ada tombol "Chat")
                 const vcard = 'BEGIN:VCARD\n'
                             + 'VERSION:3.0\n'
-                            + 'FN:Admin Layanan\n' // Nama yang akan muncul
+                            + `FN:${adminName}\n` // Nama yang akan muncul
                             + 'ORG:Admin Layanan;\n' 
-                            + 'TEL;type=CELL;type=VOICE;waid=6281234567890:+62 812-3456-7890\n' 
+                            + `TEL;type=CELL;type=VOICE;waid=${adminPhone}:+${adminPhone}\n` 
                             + 'END:VCARD';
 
                 await sock.sendMessage(pengirim, {
                     contacts: {
-                        displayName: 'Admin Layanan',
+                        displayName: adminName,
                         contacts: [{ vcard }]
                     }
                 });
@@ -113,6 +118,15 @@ async function connectToWhatsApp() {
 
 // Rute untuk menerima HTTP POST dan mengirim pesan WA
 app.post('/api/send-message', async (req, res) => {
+    // 0. Validasi API Key (jika disetel di environment variable API_KEY)
+    const expectedApiKey = process.env.API_KEY;
+    if (expectedApiKey) {
+        const clientApiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace(/^Bearer\s+/i, '');
+        if (clientApiKey !== expectedApiKey) {
+            return res.status(401).json({ status: false, error: 'Akses ditolak: API Key tidak valid atau tidak disertakan.' });
+        }
+    }
+
     // Menangkap data 'number' dan 'message' dari body request Postman/cURL
     const { number, message } = req.body;
 
@@ -159,7 +173,7 @@ app.post('/api/send-message', async (req, res) => {
 // ==========================================
 // MENJALANKAN SERVER & WHATSAPP
 // ==========================================
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`🌐 Server API berjalan di port ${PORT} (http://localhost:${PORT})`);
     // Memulai koneksi WhatsApp setelah server jalan
